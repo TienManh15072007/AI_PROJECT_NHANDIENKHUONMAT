@@ -66,11 +66,24 @@ if app_mode == "Dự đoán qua Webcam/Ảnh":
             if st.button("🔍 Tiến hành Dự đoán", type="primary"):
                 with st.spinner("Đang phân tích..."):
                     preds = model.predict(img_for_prediction)
-                    digit = np.argmax(preds)
+                    digit = int(np.argmax(preds))
                     confidence = np.max(preds) * 100
                     
-                    st.success(f"**Kết quả dự đoán: Class {digit}**")
+                    class_names = [
+                        "HoangKyAnh", "Lê Quang Dũng", "Lê Tuấn Thành", "Lương Ngọc Thuận", 
+                        "Ngô Quốc Trung", "Nguyen Ngoc Bao", "Nguyễn Hoàng Quế Châu", 
+                        "Nguyễn Phạm Hoàng An", "Nguyễn Thị Khánh Lê", "Nguyễn Thị Ngọc Tuyết", 
+                        "Nguyễn Tiến Mạnh", "Nguyễn Việt Đức", "Nguyễn Đặng Vinh Phúc", 
+                        "Phạm Gia Thành Duy", "Phạm Hứa Nhật Minh", "Phạm Nguyễn Bảo Châu", 
+                        "Phạm Phú Hoà", "Trần Hải Yến", "Vũ Quang Thái", "Đinh Hữu Khánh Anh", 
+                        "Đoàn Hùng", "Đỗ An Phúc"
+                    ]
+                    
+                    predicted_name = class_names[digit]
+                    
+                    st.success(f"**Kết quả dự đoán: {predicted_name}**")
                     st.info(f"Độ tin cậy (Confidence): {confidence:.2f}%")
+            
 
 elif app_mode == "Huấn luyện mô hình (Training)":
     st.title("⚙️ Huấn luyện Mô hình CNN")
