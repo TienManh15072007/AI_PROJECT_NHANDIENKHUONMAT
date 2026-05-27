@@ -1,4 +1,3 @@
-# 1. TẤT CẢ CÁC DÒNG IMPORT PHẢI NẰM Ở TRÊN CÙNG
 import streamlit as st
 import tensorflow as tf
 from tensorflow.keras.models import Sequential, load_model
@@ -10,25 +9,26 @@ from PIL import Image
 import os
 import gdown
 
-# 2. CẤU HÌNH GIAO DIỆN (NẾU CÓ)
 st.set_page_config(page_title="App Nhận Diện Khuôn Mặt", layout="wide")
 
-# 3. BÂY GIỜ MỚI BẮT ĐẦU DÙNG @st.cache_resource
-# 3. BÂY GIỜ MỚI BẮT ĐẦU DÙNG @st.cache_resource
 @st.cache_resource
 def download_model():
     model_path = "face_model.h5"
     if not os.path.exists(model_path):
-        # CÁCH 1: Dùng trực tiếp link chia sẻ và thêm tham số fuzzy=True
         url = 'https://drive.google.com/file/d/1s0JVa1Xa5KkMkDirqTobbFf9ZW5SOquJ/view?usp=sharing'
-        
         try:
-            # Thêm fuzzy=True để gdown tự bóc tách ID từ link share
             gdown.download(url, model_path, quiet=False, fuzzy=True)
         except Exception as e:
-            st.error(f"Lỗi tải model từ Google Drive: {e}")
-            
+            st.error(f"Lỗi: {e}")
     return model_path
+
+model_file_path = download_model()
+
+@st.cache_resource
+def load_trained_model(model_path=model_file_path):
+    if os.path.exists(model_path):
+        return load_model(model_path)
+    return None
 # ---------------------------------------------------------
 # THANH CÔNG CỤ (SIDEBAR)
 # ---------------------------------------------------------
