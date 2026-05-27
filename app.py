@@ -1,3 +1,26 @@
+import os
+import gdown
+
+# Hàm tải file từ Google Drive nếu máy chưa có
+@st.cache_resource
+def download_model():
+    model_path = "face_model.h5"
+    if not os.path.exists(model_path):
+        # Thay ID_FILE_CỦA_BẠN bằng ID thật từ Google Drive
+        file_id = 'https://drive.google.com/file/d/1s0JVa1Xa5KkMkDirqTobbFf9ZW5SOquJ/view?usp=sharing' 
+        url = f'https://drive.google.com/uc?id={file_id}'
+        gdown.download(url, model_path, quiet=False)
+    return model_path
+
+# Tải (hoặc lấy file có sẵn) trước khi load mô hình
+model_file_path = download_model()
+
+# Hàm load mô hình đã train
+@st.cache_resource
+def load_trained_model(model_path=model_file_path):
+    if os.path.exists(model_path):
+        return load_model(model_path)
+    return None
 import streamlit as st
 import tensorflow as tf
 from tensorflow.keras.models import Sequential, load_model
