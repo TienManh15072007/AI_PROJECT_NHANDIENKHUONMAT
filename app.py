@@ -1,26 +1,4 @@
-import os
-import gdown
-
-# Hàm tải file từ Google Drive nếu máy chưa có
-@st.cache_resource
-def download_model():
-    model_path = "face_model.h5"
-    if not os.path.exists(model_path):
-        # Thay ID_FILE_CỦA_BẠN bằng ID thật từ Google Drive
-        file_id = 'https://drive.google.com/file/d/1s0JVa1Xa5KkMkDirqTobbFf9ZW5SOquJ/view?usp=sharing' 
-        url = f'https://drive.google.com/uc?id={file_id}'
-        gdown.download(url, model_path, quiet=False)
-    return model_path
-
-# Tải (hoặc lấy file có sẵn) trước khi load mô hình
-model_file_path = download_model()
-
-# Hàm load mô hình đã train
-@st.cache_resource
-def load_trained_model(model_path=model_file_path):
-    if os.path.exists(model_path):
-        return load_model(model_path)
-    return None
+# 1. TẤT CẢ CÁC DÒNG IMPORT PHẢI NẰM Ở TRÊN CÙNG
 import streamlit as st
 import tensorflow as tf
 from tensorflow.keras.models import Sequential, load_model
@@ -30,19 +8,30 @@ import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 import os
+import gdown
 
-# ---------------------------------------------------------
-# CẤU HÌNH GIAO DIỆN STREAMLIT
-# ---------------------------------------------------------
+# 2. CẤU HÌNH GIAO DIỆN (NẾU CÓ)
 st.set_page_config(page_title="App Nhận Diện Khuôn Mặt", layout="wide")
 
-# Hàm load mô hình đã train (sử dụng cache để không phải load lại nhiều lần)
+# 3. BÂY GIỜ MỚI BẮT ĐẦU DÙNG @st.cache_resource
 @st.cache_resource
-def load_trained_model(model_path="face_model.h5"):
+def download_model():
+    model_path = "face_model.h5"
+    if not os.path.exists(model_path):
+        # Lưu ý: Thay 'ID_FILE_CỦA_BẠN' bằng ID thật lấy từ Google Drive
+        file_id = 'ID_FILE_CỦA_BẠN' 
+        url = f'https://drive.google.com/uc?id={file_id}'
+        gdown.download(url, model_path, quiet=False)
+    return model_path
+
+# Kéo file về (nếu chưa có)
+model_file_path = download_model()
+
+@st.cache_resource
+def load_trained_model(model_path=model_file_path):
     if os.path.exists(model_path):
         return load_model(model_path)
     return None
-
 # ---------------------------------------------------------
 # THANH CÔNG CỤ (SIDEBAR)
 # ---------------------------------------------------------
