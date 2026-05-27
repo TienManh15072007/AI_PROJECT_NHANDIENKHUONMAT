@@ -7,50 +7,39 @@ import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 import os
-import gdown
+import urllib.request
 
 st.set_page_config(page_title="App Nhận Diện Khuôn Mặt", layout="wide")
 
 @st.cache_resource
-def download_model():
+def download_and_load_model():
     model_path = "face_model.h5"
+    
     if not os.path.exists(model_path):
-        file_id = '1s0JVa1Xa5KkMkDirqTobbFf9ZW5SOquJ'
+        url = "https://github.com/TienManh15072007/AI_PROJECT_NHANDIENKHUONMAT/releases/download/v1.0/face_model.h5"
         try:
-            gdown.download(id=file_id, output=model_path, quiet=False)
+            urllib.request.urlretrieve(url, model_path)
         except Exception as e:
-            st.error(f"Lỗi: {e}")
-    return model_path
-
-model_file_path = download_model()
-
-@st.cache_resource
-def load_trained_model(model_path=model_file_path):
+            st.error(f"Lỗi tải file: {e}")
+            return None
+            
     if os.path.exists(model_path):
         return load_model(model_path)
     return None
-# ---------------------------------------------------------
-# THANH CÔNG CỤ (SIDEBAR)
-# ---------------------------------------------------------
-st.sidebar.title("Thanh Công Cụ")
-app_mode = st.sidebar.selectbox("Chọn chức năng", 
-                                ["Dự đoán qua Webcam/Ảnh", "Huấn luyện mô hình (Training)"])
 
-# ---------------------------------------------------------
-# PHẦN 1: ỨNG DỤNG DỰ ĐOÁN (WEBCAM & UPLOAD)
-# ---------------------------------------------------------
+model = download_and_load_model()
+
+st.sidebar.title("Thanh Công Cụ")
+app_mode = st.sidebar.selectbox("Chọn chức năng", ["Dự đoán qua Webcam/Ảnh", "Huấn luyện mô hình (Training)"])
+
 if app_mode == "Dự đoán qua Webcam/Ảnh":
     st.title("📷 Nhận diện Khuôn mặt (CNN)")
     
-    # Load mô hình
-    model = load_trained_model()
-    
     if model is None:
-        st.warning("⚠️ Chưa tìm thấy file mô hình 'face_model.h5'. Vui lòng qua mục 'Huấn luyện' để tạo mô hình trước, hoặc tải file model có sẵn lên thư mục GitHub!")
+        st.warning("⚠️ Chưa tải được mô hình. Vui lòng kiểm tra lại link tải!")
     else:
         st.success("✅ Đã tải mô hình thành công!")
         
-        # Tạo 2 cột để bố trí UI đẹp hơn
         col1, col2 = st.columns(2)
         
         with col1:
@@ -61,24 +50,19 @@ if app_mode == "Dự đoán qua Webcam/Ảnh":
             st.markdown("### 2. Tải ảnh từ máy")
             uploaded_file = st.file_uploader("Chọn file ảnh (jpg, png)", type=["jpg", "jpeg", "png"])
             
-        # Xác định ảnh đầu vào
         img_to_predict = camera_image if camera_image else uploaded_file
         
         if img_to_predict is not None:
-            # Hiển thị ảnh
             image = Image.open(img_to_predict).convert('RGB')
             st.image(image, caption="Ảnh đầu vào", use_column_width=True)
             
-            # Tiền xử lý ảnh giống code gốc của bạn
             img_width, img_height = 200, 200
             img_resized = image.resize((img_width, img_height))
             img_array = np.array(img_resized)
             
-            # Normalize pixel values to 0-1 và thêm batch dimension
             img_for_prediction = img_array.astype('float32') / 255.0
             img_for_prediction = np.expand_dims(img_for_prediction, axis=0)
             
-            # Dự đoán
             if st.button("🔍 Tiến hành Dự đoán", type="primary"):
                 with st.spinner("Đang phân tích..."):
                     preds = model.predict(img_for_prediction)
@@ -88,13 +72,10 @@ if app_mode == "Dự đoán qua Webcam/Ảnh":
                     st.success(f"**Kết quả dự đoán: Class {digit}**")
                     st.info(f"Độ tin cậy (Confidence): {confidence:.2f}%")
 
-# ---------------------------------------------------------
-# PHẦN 2: HUẤN LUYỆN MÔ HÌNH (GỮ NGUYÊN Ý CHÍNH CODE CŨ)
-# ---------------------------------------------------------
 elif app_mode == "Huấn luyện mô hình (Training)":
     st.title("⚙️ Huấn luyện Mô hình CNN")
     
-    st.info("Nhập đường dẫn chứa dữ liệu huấn luyện. Lưu ý: Khi deploy lên GitHub, hãy dùng đường dẫn tương đối (ví dụ: `dataset/train`) thay vì ổ đĩa cục bộ hoặc Google Drive.")
+    st.info("Nhập đường dẫn chứa dữ liệu huấn luyện.")
     
     train_dir = st.text_input("Đường dẫn thư mục dữ liệu:", "data_khuon_mat/")
     epochs = st.number_input("Số lần học (Epochs):", min_value=1, max_value=100, value=10)
@@ -102,12 +83,11 @@ elif app_mode == "Huấn luyện mô hình (Training)":
     
     if st.button("🚀 Bắt đầu Huấn luyện"):
         if not os.path.exists(train_dir):
-            st.error(f"Không tìm thấy thư mục: {train_dir}. Vui lòng kiểm tra lại đường dẫn!")
+            st.error(f"Không tìm thấy thư mục: {train_dir}")
         else:
-            with st.spinner("Đang tiến hành huấn luyện... quá trình này có thể mất thời gian..."):
+            with st.spinner("Đang tiến hành huấn luyện..."):
                 img_width, img_height = 200, 200
                 
-                # Sửa lỗi: Thêm validation_split để vẽ được biểu đồ val_accuracy
                 train_datagen = ImageDataGenerator(
                     rescale=1.0/255, 
                     rotation_range=30,
@@ -117,8 +97,8 @@ elif app_mode == "Huấn luyện mô hình (Training)":
                     zoom_range=0.2,
                     horizontal_flip=True,
                     fill_mode="nearest",
-                    validation_split=0.2 # Trích 20% data cho validation
-                )                                                                                                                                                                       
+                    validation_split=0.2 
+                )                                                                                                                                              
                 
                 train_generator = train_datagen.flow_from_directory(
                     train_dir,
@@ -136,7 +116,6 @@ elif app_mode == "Huấn luyện mô hình (Training)":
                     subset='validation'
                 )
 
-                # XÂY DỰNG MÔ HÌNH CNN (Giữ nguyên cấu trúc của bạn)
                 model = Sequential([
                     Conv2D(32, (3,3), activation="relu", input_shape=(img_width, img_height, 3)), 
                     MaxPooling2D(2,2),
@@ -147,27 +126,23 @@ elif app_mode == "Huấn luyện mô hình (Training)":
                     Flatten(),
                     Dense(128, activation="relu"),
                     Dropout(0.5),
-                    Dense(22, activation="softmax") # Lưu ý: 22 là số class của bạn
-                ])                                                                                                                                                                      
+                    Dense(22, activation="softmax")
+                ])                                                                                                                                       
                 
                 model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
                 
-                # In cấu trúc ra UI
                 st.text("Cấu trúc mô hình:")
                 model.summary(print_fn=lambda x: st.text(x))
 
-                # HUẤN LUYỆN
                 history = model.fit(
                     train_generator, 
-                    validation_data=val_generator, # Sửa lỗi code cũ thiếu validation data
+                    validation_data=val_generator,
                     epochs=epochs
                 )
                 
-                # Lưu mô hình
                 model.save("face_model.h5")
-                st.success("✅ Huấn luyện hoàn tất! Mô hình đã được lưu tại 'face_model.h5'. Bạn có thể chuyển sang tab Dự đoán để test.")
+                st.success("✅ Huấn luyện hoàn tất! Mô hình đã được lưu.")
 
-                # ĐÁNH GIÁ KẾT QUẢ MÔ HÌNH
                 fig, ax = plt.subplots()
                 ax.plot(history.history['accuracy'], label="Kết quả huấn luyện")
                 ax.plot(history.history['val_accuracy'], label="Độ chính xác xác thực")
