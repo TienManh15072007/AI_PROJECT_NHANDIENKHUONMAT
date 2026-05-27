@@ -14,24 +14,21 @@ import gdown
 st.set_page_config(page_title="App Nhận Diện Khuôn Mặt", layout="wide")
 
 # 3. BÂY GIỜ MỚI BẮT ĐẦU DÙNG @st.cache_resource
+# 3. BÂY GIỜ MỚI BẮT ĐẦU DÙNG @st.cache_resource
 @st.cache_resource
 def download_model():
     model_path = "face_model.h5"
     if not os.path.exists(model_path):
-        # Lưu ý: Thay 'ID_FILE_CỦA_BẠN' bằng ID thật lấy từ Google Drive
-        file_id = 'https://drive.google.com/file/d/1s0JVa1Xa5KkMkDirqTobbFf9ZW5SOquJ/view?usp=sharing' 
-        url = f'https://drive.google.com/uc?id={file_id}'
-        gdown.download(url, model_path, quiet=False)
+        # CÁCH 1: Dùng trực tiếp link chia sẻ và thêm tham số fuzzy=True
+        url = 'https://drive.google.com/file/d/1s0JVa1Xa5KkMkDirqTobbFf9ZW5SOquJ/view?usp=sharing'
+        
+        try:
+            # Thêm fuzzy=True để gdown tự bóc tách ID từ link share
+            gdown.download(url, model_path, quiet=False, fuzzy=True)
+        except Exception as e:
+            st.error(f"Lỗi tải model từ Google Drive: {e}")
+            
     return model_path
-
-# Kéo file về (nếu chưa có)
-model_file_path = download_model()
-
-@st.cache_resource
-def load_trained_model(model_path=model_file_path):
-    if os.path.exists(model_path):
-        return load_model(model_path)
-    return None
 # ---------------------------------------------------------
 # THANH CÔNG CỤ (SIDEBAR)
 # ---------------------------------------------------------
