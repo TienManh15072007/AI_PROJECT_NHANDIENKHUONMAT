@@ -15,9 +15,9 @@ st.set_page_config(page_title="App Nhận Diện Khuôn Mặt", layout="wide")
 def download_model():
     model_path = "face_model.h5"
     if not os.path.exists(model_path):
-        url = 'https://drive.google.com/file/d/1s0JVa1Xa5KkMkDirqTobbFf9ZW5SOquJ/view?usp=sharing'
+        file_id = '1s0JVa1Xa5KkMkDirqTobbFf9ZW5SOquJ'
         try:
-            gdown.download(url, model_path, quiet=False, fuzzy=True)
+            gdown.download(id=file_id, output=model_path, quiet=False)
         except Exception as e:
             st.error(f"Lỗi: {e}")
     return model_path
