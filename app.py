@@ -19,7 +19,7 @@ def download_model():
     model_path = "face_model.h5"
     if not os.path.exists(model_path):
         # Lưu ý: Thay 'ID_FILE_CỦA_BẠN' bằng ID thật lấy từ Google Drive
-        file_id = 'ID_FILE_CỦA_BẠN' 
+        file_id = 'https://drive.google.com/file/d/1s0JVa1Xa5KkMkDirqTobbFf9ZW5SOquJ/view?usp=sharing' 
         url = f'https://drive.google.com/uc?id={file_id}'
         gdown.download(url, model_path, quiet=False)
     return model_path
